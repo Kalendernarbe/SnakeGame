@@ -28,13 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.snake = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.snake)).BeginInit();
+            this.SuspendLayout();
+            // 
+            // snake
+            // 
+            this.snake.BackColor = System.Drawing.SystemColors.MenuHighlight;
+            this.snake.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.snake.Location = new System.Drawing.Point(0, 0);
+            this.snake.Name = "snake";
+            this.snake.Size = new System.Drawing.Size(35, 35);
+            this.snake.TabIndex = 0;
+            this.snake.TabStop = false;
+            // 
+            // Form1
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Text = "Form1";
+            this.ClientSize = new System.Drawing.Size(572, 450);
+            this.Controls.Add(this.snake);
+            this.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.Name = "Form1";
+            this.Text = "Game \"Snake\"";
+            ((System.ComponentModel.ISupportInitialize)(this.snake)).EndInit();
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.PictureBox snake;
     }
 }
 
