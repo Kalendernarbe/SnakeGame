@@ -13,7 +13,9 @@ namespace SnakeGame
 {
     public partial class Form1 : Form
     {
-
+        private int randI, randJ;
+        private PictureBox fruit;
+        private int dirX, dirY;
         private int windowWidth = 615;
         private int windowHeight = 610;
         private int blockSize = 30;
@@ -23,7 +25,18 @@ namespace SnakeGame
             InitializeComponent();
             this.Width = windowWidth;
             this.Height = windowHeight;
+            dirX = 1; 
+            dirY = 0;
+            fruit = new PictureBox();
+            fruit.BackColor = Color.Red;
+            fruit.Size = new Size(blockSize, blockSize);
             generateMap();
+            generateFruit();
+
+            // Добавление таймера
+            timer.Tick += new EventHandler(Update);
+            timer.Interval = 500;
+            timer.Start();
 
             int blockWidth = snake.Width - 5;
             int blockHeight = snake.Height - 5;
@@ -32,6 +45,8 @@ namespace SnakeGame
             snake.Region = new Region(getGraphicsPath(blockWidth, blockHeight));
             
             this.KeyDown += new KeyEventHandler(OKP);
+
+            fruit.Region = new Region(getGraphicsPath(blockWidth, blockHeight));
         }
 
         // Возвращает графический путь для круглой формы
@@ -40,6 +55,20 @@ namespace SnakeGame
             GraphicsPath path = new GraphicsPath();
             path.AddEllipse(0, 0, width, height);
             return path;
+        }
+
+        // Генерация фрукта в рандомном месте
+        private void generateFruit()
+        {
+            Random rand = new Random();
+            randI = rand.Next(0, windowWidth - blockSize);
+            int tempI = randI % blockSize;
+            randI -= tempI;
+            randJ = rand.Next(0, windowWidth - blockSize);
+            int tempJ = randJ % blockSize;
+            randJ -= tempJ;
+            fruit.Location = new Point(randI, randJ);
+            this.Controls.Add(fruit);
         }
 
         // Генерация игрового поля
@@ -63,25 +92,35 @@ namespace SnakeGame
             }
         }
 
+        // Обовление положения змейки
+        private void Update(Object sender, EventArgs eventArgs)
+        {
+            snake.Location = new Point(snake.Location.X + dirX * blockSize, snake.Location.Y + dirY * blockSize);
+        }
+
         private void OKP(object sender, KeyEventArgs e)
         {
             switch (e.KeyCode.ToString())
             {
                 case "W":
                 case "Up":
-                    snake.Location = new Point(snake.Location.X, snake.Location.Y - blockSize);
+                    dirX = 0;
+                    dirY = -1;
                     break;
                 case "A":
                 case "Left":
-                    snake.Location = new Point(snake.Location.X - blockSize, snake.Location.Y);
+                    dirX = -1;
+                    dirY = 0;
                     break;
                 case "D":
                 case "Right":
-                    snake.Location = new Point(snake.Location.X + blockSize, snake.Location.Y);
+                    dirY = 0;
+                    dirX = 1;
                     break;
                 case "S":
                 case "Down":
-                    snake.Location = new Point(snake.Location.X, snake.Location.Y + blockSize);
+                    dirY = 1;
+                    dirX = 0;
                     break;
             }
         }
