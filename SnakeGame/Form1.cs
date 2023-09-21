@@ -5,9 +5,12 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Label = System.Windows.Forms.Label;
 
 namespace SnakeGame
 {
@@ -15,38 +18,49 @@ namespace SnakeGame
     {
         private int randI, randJ;
         private PictureBox fruit;
+        private PictureBox[] snake = new PictureBox[400];
+
         private int dirX, dirY;
-        private int windowWidth = 615;
+        private int windowWidth = 700;
         private int windowHeight = 610;
         private int blockSize = 30;
 
-        public Form1()
+        private Label scoreLabel;
+        private int score = 0;
+
+        // Генерация игрового поля
+        private void generateMap()
         {
-            InitializeComponent();
-            this.Width = windowWidth;
-            this.Height = windowHeight;
-            dirX = 1; 
-            dirY = 0;
-            fruit = new PictureBox();
-            fruit.BackColor = Color.Red;
-            fruit.Size = new Size(blockSize, blockSize);
-            generateMap();
-            generateFruit();
+            for (int i = 0; i <= windowWidth / blockSize - 4; i++)
+            {
+                PictureBox pictureBox = new PictureBox();
+                pictureBox.BackColor = Color.Black;
+                pictureBox.Location = new Point(0, blockSize * i);
+                pictureBox.Size = new Size(windowWidth - 100, 1);
+                this.Controls.Add(pictureBox);
+            }
+            for (int i = 0; i <= windowHeight / blockSize; i++)
+            {
+                PictureBox pictureBox = new PictureBox();
+                pictureBox.BackColor = Color.Black;
+                pictureBox.Location = new Point(blockSize * i, 0);
+                pictureBox.Size = new Size(1, windowWidth - 130);
+                this.Controls.Add(pictureBox);
+            }
+        }
 
-            // Добавление таймера
-            timer.Tick += new EventHandler(Update);
-            timer.Interval = 500;
-            timer.Start();
-
-            int blockWidth = snake.Width - 5;
-            int blockHeight = snake.Height - 5;
-
-            // Задание свойства Region PictureBox
-            snake.Region = new Region(getGraphicsPath(blockWidth, blockHeight));
-            
-            this.KeyDown += new KeyEventHandler(OKP);
-
-            fruit.Region = new Region(getGraphicsPath(blockWidth, blockHeight));
+        // Генерация фрукта в рандомном месте
+        private void generateFruit()
+        {
+            Random rand = new Random();
+            randI = rand.Next(0, windowWidth - 100 - blockSize);
+            int tempI = randI % blockSize;
+            randI -= tempI;
+            randJ = rand.Next(0, windowWidth - 100 - blockSize);
+            int tempJ = randJ % blockSize;
+            randJ -= tempJ;
+            fruit.Location = new Point(randI, randJ);
+            this.Controls.Add(fruit);
         }
 
         // Возвращает графический путь для круглой формы
@@ -57,45 +71,83 @@ namespace SnakeGame
             return path;
         }
 
-        // Генерация фрукта в рандомном месте
-        private void generateFruit()
+        // Создание головы змейки (1-ый элемент)
+        private void createElemSnake(int index, int x, int y)
         {
-            Random rand = new Random();
-            randI = rand.Next(0, windowWidth - blockSize);
-            int tempI = randI % blockSize;
-            randI -= tempI;
-            randJ = rand.Next(0, windowWidth - blockSize);
-            int tempJ = randJ % blockSize;
-            randJ -= tempJ;
-            fruit.Location = new Point(randI, randJ);
-            this.Controls.Add(fruit);
+            snake[index] = new PictureBox();
+            snake[index].Location = new Point(x, y);
+            snake[index].Size = new Size(blockSize, blockSize);
+            snake[index].BackColor = Color.CadetBlue;
+            snake[index].Region = new Region(getGraphicsPath(blockSize, blockSize));
         }
 
-        // Генерация игрового поля
-        private void generateMap()
+        // Настройка показателя очков
+        private void setScoreLabel()
         {
-            for (int i = 0; i <= windowWidth/blockSize - 1; i++)
+            scoreLabel = new Label();
+            scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+            scoreLabel.Size = new Size(50, 200);
+            scoreLabel.Location = new Point(630, 150);
+            scoreLabel.ForeColor = Color.MediumPurple;
+            scoreLabel.Font = new Font(scoreLabel.Font.FontFamily, 14, scoreLabel.Font.Style);
+            this.Controls.Add(scoreLabel);
+        }
+
+        public Form1()
+        {
+            InitializeComponent();
+            this.Width = windowWidth;
+            this.Height = windowHeight;
+            dirX = 1;
+            dirY = 0;
+
+            setScoreLabel();
+            createElemSnake(0, 300, 300);
+            this.Controls.Add(snake[0]);
+
+            fruit = new PictureBox();
+            fruit.BackColor = Color.Red;
+            fruit.Size = new Size(blockSize, blockSize);
+            generateMap();
+            generateFruit();
+
+            // Добавление таймера
+            timer.Tick += new EventHandler(update);
+            timer.Interval = 300;
+            timer.Start();
+
+            // Задание свойства Region PictureBox
+            this.KeyDown += new KeyEventHandler(OKP);
+
+            fruit.Region = new Region(getGraphicsPath(blockSize, blockSize));
+        } 
+
+        // Процесс поедания фрукта (увеличение score, генерация нового объекта )
+        private void eatFruit()
+        {
+            if (snake[0].Location.X == randI && snake[0].Location.Y == randJ)
             {
-                PictureBox pictureBox = new PictureBox();
-                pictureBox.BackColor = Color.Black;
-                pictureBox.Location = new Point(0, blockSize * i);
-                pictureBox.Size = new Size(windowWidth - 15, 1);
-                this.Controls.Add(pictureBox);
+                scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + ++score;
+                createElemSnake(score, snake[score - 1].Location.X + dirX * blockSize, snake[score - 1].Location.Y - dirY * blockSize);
+                this.Controls.Add(snake[score]);
+                generateFruit();
             }
-            for (int i = 0; i <= windowHeight / blockSize; i++)
+        }
+
+        // Изменение положения всей структуры змеи
+        private void moveSnake()
+        {
+            for ( int i = score; i >= 0; i--)
             {
-                PictureBox pictureBox = new PictureBox();
-                pictureBox.BackColor = Color.Black;
-                pictureBox.Location = new Point(blockSize * i, 0);
-                pictureBox.Size = new Size(1, windowWidth - 45);
-                this.Controls.Add(pictureBox);
+                snake[i].Location = new Point(snake[i].Location.X + dirX * blockSize, snake[i].Location.Y + dirY * blockSize);
             }
         }
 
         // Обовление положения змейки
-        private void Update(Object sender, EventArgs eventArgs)
+        private void update(Object sender, EventArgs eventArgs)
         {
-            snake.Location = new Point(snake.Location.X + dirX * blockSize, snake.Location.Y + dirY * blockSize);
+            eatFruit();
+            moveSnake();
         }
 
         private void OKP(object sender, KeyEventArgs e)
