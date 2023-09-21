@@ -21,7 +21,7 @@ namespace SnakeGame
         private PictureBox[] snake = new PictureBox[400];
 
         private int dirX, dirY;
-        private int windowWidth = 700;
+        private int windowWidth = 720;
         private int windowHeight = 610;
         private int blockSize = 30;
 
@@ -31,12 +31,12 @@ namespace SnakeGame
         // Генерация игрового поля
         private void generateMap()
         {
-            for (int i = 0; i <= windowWidth / blockSize - 4; i++)
+            for (int i = 0; i <= windowWidth / blockSize - 5; i++)
             {
                 PictureBox pictureBox = new PictureBox();
                 pictureBox.BackColor = Color.Black;
                 pictureBox.Location = new Point(0, blockSize * i);
-                pictureBox.Size = new Size(windowWidth - 100, 1);
+                pictureBox.Size = new Size(windowWidth - 120, 1);
                 this.Controls.Add(pictureBox);
             }
             for (int i = 0; i <= windowHeight / blockSize; i++)
@@ -44,7 +44,7 @@ namespace SnakeGame
                 PictureBox pictureBox = new PictureBox();
                 pictureBox.BackColor = Color.Black;
                 pictureBox.Location = new Point(blockSize * i, 0);
-                pictureBox.Size = new Size(1, windowWidth - 130);
+                pictureBox.Size = new Size(1, windowWidth - 150);
                 this.Controls.Add(pictureBox);
             }
         }
@@ -53,13 +53,14 @@ namespace SnakeGame
         private void generateFruit()
         {
             Random rand = new Random();
-            randI = rand.Next(0, windowWidth - 100 - blockSize);
+            randI = rand.Next(0, windowWidth - 120 - blockSize);
             int tempI = randI % blockSize;
             randI -= tempI;
-            randJ = rand.Next(0, windowWidth - 100 - blockSize);
+            randJ = rand.Next(0, windowWidth - 150 - blockSize);
             int tempJ = randJ % blockSize;
             randJ -= tempJ;
-            fruit.Location = new Point(randI, randJ);
+            fruit.Location = new Point(randI + 3, randJ + 3);
+            fruit.Region = new Region(getGraphicsPath(blockSize - 6, blockSize - 6));
             this.Controls.Add(fruit);
         }
 
@@ -86,41 +87,63 @@ namespace SnakeGame
         {
             scoreLabel = new Label();
             scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
-            scoreLabel.Size = new Size(50, 200);
+            scoreLabel.TextAlign = ContentAlignment.MiddleCenter;
+            scoreLabel.Size = new Size(50, 250);
             scoreLabel.Location = new Point(630, 150);
-            scoreLabel.ForeColor = Color.MediumPurple;
-            scoreLabel.Font = new Font(scoreLabel.Font.FontFamily, 14, scoreLabel.Font.Style);
+            scoreLabel.ForeColor = Color.DarkRed;
+            scoreLabel.BackColor = Color.LightSkyBlue;
+            scoreLabel.Font = new Font(scoreLabel.Font.FontFamily, 18, FontStyle.Bold);
             this.Controls.Add(scoreLabel);
+        }
+
+        // Настройка заднего фона общей формы
+        private void SetFormBackgroundColor(Color color, int x, int y, int width, int height)
+        {
+            Bitmap bitmap = new Bitmap(this.Width, this.Height);
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                Rectangle rectangle = new Rectangle(x, y, width, height);
+
+                // Заливаем прямоугольник выбранным цветом
+                using (SolidBrush brush = new SolidBrush(color))
+                {
+                    graphics.FillRectangle(brush, rectangle);
+                }
+            }
+            this.BackgroundImage = bitmap;
         }
 
         public Form1()
         {
             InitializeComponent();
             this.Text = "Snake Game";
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.BackColor = Color.CadetBlue;
             this.Width = windowWidth;
             this.Height = windowHeight;
             dirX = 1;
             dirY = 0;
 
+            SetFormBackgroundColor(Color.LightYellow, 0, 0, 600, 570);
             setScoreLabel();
             createElemSnake(0, 300, 300);
             this.Controls.Add(snake[0]);
 
             fruit = new PictureBox();
             fruit.BackColor = Color.Red;
-            fruit.Size = new Size(blockSize, blockSize);
+
             generateMap();
             generateFruit();
 
             // Добавление таймера
             timer.Tick += new EventHandler(update);
-            timer.Interval = 300;
+            timer.Interval = 250;
             timer.Start();
 
             // Задание свойства Region PictureBox
             this.KeyDown += new KeyEventHandler(OKP);
 
-            fruit.Region = new Region(getGraphicsPath(blockSize, blockSize));
+            fruit.Region = new Region(getGraphicsPath(blockSize - 6, blockSize - 6));
         } 
 
         // Процесс поедания фрукта (увеличение score, генерация нового объекта )
@@ -210,7 +233,7 @@ namespace SnakeGame
             eatItself();
         }
 
-        // Обовление положения змейки
+        // Обновление положения змейки
         private void update(Object sender, EventArgs eventArgs)
         {
             checkBorders();
