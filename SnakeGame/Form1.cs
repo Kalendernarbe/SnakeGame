@@ -96,6 +96,7 @@ namespace SnakeGame
         public Form1()
         {
             InitializeComponent();
+            this.Text = "Snake Game";
             this.Width = windowWidth;
             this.Height = windowHeight;
             dirX = 1;
@@ -134,18 +135,85 @@ namespace SnakeGame
             }
         }
 
+        // Поедание себя же
+        private void eatItself()
+        {
+            for(int i = 1; i < score; i++)
+            {
+                if (snake[0].Location == snake[i].Location)
+                {
+                    for(int j = i;  j <= score; j++)
+                        this.Controls.Remove(snake[j]);
+                    score = score - (score - i + 1);
+                    scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+                }
+            }
+        }
+
+        // Проверка на выход за границы
+        private void checkBorders()
+        {
+            if (snake[0].Location.X < 0)
+            {
+                for(int i = 1; i <= score; i++)
+                {
+                    this.Controls.Remove(snake[i]);
+                }
+                score = 0;
+                scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+                dirX = 1;
+            }
+            if (snake[0].Location.X > windowHeight - blockSize)
+            {
+                for(int i = 1; i <= score; i++)
+                {
+                    this.Controls.Remove(snake[i]);
+                }
+                score = 0;
+                scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+                dirX = -1;
+            }
+            if (snake[0].Location.Y < 0)
+            {
+                for(int i = 1; i <= score; i++)
+                {
+                    this.Controls.Remove(snake[i]);
+                }
+                score = 0;
+                scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+                dirY = 1;
+            }
+            if (snake[0].Location.Y > windowHeight - blockSize * 2)
+            {
+                for(int i = 1; i <= score; i++)
+                {
+                    this.Controls.Remove(snake[i]);
+                }
+                score = 0;
+                scoreLabel.Text = "S\nC\nO\nR\nE\n. .\n\n" + score;
+                dirY = -1;
+            }
+        }
+
         // Изменение положения всей структуры змеи
         private void moveSnake()
         {
-            for ( int i = score; i >= 0; i--)
+            //for ( int i = score; i >= 0; i--)
+            //{
+            //    snake[i].Location = new Point(snake[i].Location.X + dirX * blockSize, snake[i].Location.Y + dirY * blockSize);
+            //}
+            for ( int i = score; i >= 1; i--)
             {
-                snake[i].Location = new Point(snake[i].Location.X + dirX * blockSize, snake[i].Location.Y + dirY * blockSize);
+                snake[i].Location =snake[i - 1].Location;
             }
+            snake[0].Location = new Point(snake[0].Location.X + dirX * (blockSize), snake[0].Location.Y + dirY * blockSize);
+            eatItself();
         }
 
         // Обовление положения змейки
         private void update(Object sender, EventArgs eventArgs)
         {
+            checkBorders();
             eatFruit();
             moveSnake();
         }
