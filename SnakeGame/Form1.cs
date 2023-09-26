@@ -113,6 +113,7 @@ namespace SnakeGame
             scoreLabel.BackColor = Color.LightSkyBlue;
             scoreLabel.Font = new Font(scoreLabel.Font.FontFamily, 18, FontStyle.Bold);
             this.Controls.Add(scoreLabel);
+            scoreLabel.BringToFront();
         }
 
         // Настройка показателя логотипа игры
@@ -125,6 +126,7 @@ namespace SnakeGame
             pictureBox.BackColor = Color.Transparent;
             pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             this.Controls.Add(pictureBox);
+            pictureBox.BringToFront();
         }
 
         // Настройка показателя кубка с рекордом игры
@@ -137,12 +139,13 @@ namespace SnakeGame
             pictureBox.BackColor = Color.Transparent;
             pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
             this.Controls.Add(pictureBox);
+            pictureBox.BringToFront();
         }
 
         // Настройка показателя рекорда
         private void setTopScore()
         {
-            topScoreLabel  = new Label();
+            topScoreLabel = new Label();
             topScoreLabel.Text = topScore.ToString();
             topScoreLabel.TextAlign = ContentAlignment.MiddleCenter;
             topScoreLabel.Size = new Size(33, 33);
@@ -190,7 +193,7 @@ namespace SnakeGame
         {
             InitializeComponent();
             this.Text = "Snake Game";
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            //this.FormBorderStyle = FormBorderStyle.FixedSingle;
             //this.BackColor = Color.CadetBlue;
             this.BackColor = Color.White;
             this.Width = windowWidth;
@@ -201,6 +204,14 @@ namespace SnakeGame
 
             Color[] colors = { Color.GreenYellow, Color.PaleGreen };
             SetFormBackgroundColor(colors, 0, 0, 600, 570, 30);
+
+            PictureBox pictureBox = new PictureBox();
+            pictureBox.Location = new Point(601, 0);
+            pictureBox.Size = new Size(105, 571);
+            pictureBox.BackColor = Color.White;
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+            this.Controls.Add(pictureBox);
+
             setScoreLabel();
             addPicture();
             addPictureCup();
@@ -219,7 +230,7 @@ namespace SnakeGame
             timer.Interval = 150;
 
             start();
-        } 
+        }
 
         // Процесс поедания фрукта (увеличение score, генерация нового объекта )
         private void eatFruit()
@@ -236,11 +247,15 @@ namespace SnakeGame
         // Поедание себя же
         private void eatItself()
         {
-            for(int i = 1; i < score; i++)
+            for (int i = 1; i < score; i++)
             {
                 if (snake[0].Location == snake[i].Location)
                 {
-                    for(int j = i;  j <= score; j++)
+                    timer.Stop();
+                    showRestartMessageBox();
+                    updateScore();
+                    break;
+                    for (int j = i; j <= score; j++)
                     {
                         this.Controls.Remove(snake[j]);
                     }
@@ -319,18 +334,38 @@ namespace SnakeGame
         // Изменение положения всей структуры змеи
         private void moveSnake()
         {
-            for ( int i = score; i >= 1; i--)
+            for (int i = score; i >= 1; i--)
             {
-                snake[i].Location =snake[i - 1].Location;
+                snake[i].Location = snake[i - 1].Location;
             }
-            snake[0].Location = new Point(snake[0].Location.X + dirX * (blockSize), snake[0].Location.Y + dirY * blockSize);
+
+            if (snake[0].Location.X < 0)
+            {
+                snake[0].Location = new Point(570, snake[0].Location.Y + dirY * blockSize);
+            }
+            else if (snake[0].Location.X > windowHeight - blockSize)
+            {
+                snake[0].Location = new Point(0, snake[0].Location.Y - dirY * blockSize);
+            }
+            else if (snake[0].Location.Y < 0)
+            {
+                snake[0].Location = new Point(snake[0].Location.X + dirX * (blockSize), 540);
+            }
+            else if (snake[0].Location.Y > windowHeight - blockSize * 2)
+            {
+                snake[0].Location = new Point(snake[0].Location.X + dirX * blockSize, 0);
+            }
+            else
+            {
+                snake[0].Location = new Point(snake[0].Location.X + dirX * (blockSize), snake[0].Location.Y + dirY * blockSize);
+            }
             eatItself();
         }
 
         // Обновление положения змейки
         private void update(Object sender, EventArgs eventArgs)
         {
-            checkBorders();
+            //checkBorders();
             eatFruit();
             moveSnake();
         }
